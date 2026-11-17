@@ -5,15 +5,12 @@
 - 抽出結果を別のCSVファイルに保存する。
 - ファイルパスはコマンドライン引数で受け取る。
 """
-
+import argparse
 import csv
 from pathlib import Path
 
 
-def main():
-
-    input_path = Path("input")/"users.csv"
-    output_path = Path("output")/"filtered_users.csv"
+def extract_csv(input_path: Path, output_path: Path) -> None:
 
     # 一時格納用リスト
     filtered_rows = []
@@ -50,6 +47,32 @@ def main():
             # 抽出したレコードを書き込む
             writer.writerows(filtered_rows)
             
+
+def parse_args() -> argparse.Namespace:
+
+    parser = argparse.ArgumentParser(
+        description="CSVファイルから30歳以上のレコードを抽出して保存します。"
+    )
+
+    parser.add_argument(
+        "input_path",
+        type=Path,
+        help="読み込むCSVファイルのパス"
+    )
+
+    parser.add_argument(
+        "output_path",
+        type=Path,
+        help="書き込むCSVファイルのパス"
+    )
+
+    return parser.parse_args()
+
+
+def main() -> None:
+    args = parse_args()
+
+    extract_csv(args.input_path, args.output_path)
 
 
 if __name__ == "__main__":
