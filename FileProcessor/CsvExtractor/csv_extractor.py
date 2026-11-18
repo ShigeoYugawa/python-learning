@@ -25,12 +25,6 @@ def extract_csv(input_path: Path, output_path: Path) -> None:
     if input_path.resolve() == output_path.resolve():
         raise ValueError("入力ファイルと出力ファイルに同じパスは指定できません。")
 
-    # ハードリンクによる同一ファイルも確認する
-    # この判定は通常は不要
-    # if input_path.exists() and output_path.exists():
-    #     if input_path.samefile(output_path):
-    #         raise ValueError("入力ファイルと出力ファイルが同一ファイルです。")
-
     # 入力パスがディレクトリでないことを確認する
     if input_path.is_dir():
         raise IsADirectoryError(f"入力パスがディレクトリです: {input_path}")
@@ -79,11 +73,19 @@ def extract_csv(input_path: Path, output_path: Path) -> None:
             with tempfile.NamedTemporaryFile(
                 mode="w",
                 encoding="utf-8",
+
+                # CSVモジュール側で改行を制御するため空文字を指定
+                # Windows環境で余分な空行が発生するのを防ぐ
                 newline="",
+
                 dir=output_path.parent,
-                prefix=f".{output_path.name}.",
-                suffix=".tmp",
+                prefix=f".{output_path.name}.", # 一時ファイル名の接頭辞
+                suffix=".tmp",                  # 一時ファイル名の拡張子
+
+                # 自動削除を無効化
+                # コンテキストマネージャー(with)を抜けてもファイルを残す
                 delete=False
+
             ) as temp_file:
 
                 temp_path = Path(temp_file.name)
@@ -108,6 +110,8 @@ def extract_csv(input_path: Path, output_path: Path) -> None:
                         )
 
                     # 列が不足している場合はエラー
+                    # None  : CSVに列自体が存在しない（列数不足）
+                    # ""    : 列は存在するが、値が空文字（空欄）
                     missing_fields = [
                         field
                         for field in reader.fieldnames
@@ -125,10 +129,10 @@ def extract_csv(input_path: Path, output_path: Path) -> None:
                         age = int(row["age"].strip())
 
                     except (ValueError, TypeError):
-                        # 数値に変換できないレコードはスキップ
+                        # 整数に変換できない値（文字列・空欄・Noneなど）は対象外とする
                         continue
 
-                    # 負数または30歳未満のレコードはスキップ
+                    # 30歳未満のレコードはスキップ
                     if age < 30:
                         continue
 
