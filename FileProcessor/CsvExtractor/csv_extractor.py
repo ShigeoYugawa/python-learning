@@ -46,6 +46,10 @@ from contextlib import suppress
 from pathlib import Path
 
 
+# --------------------------------------------------
+# 定数
+# --------------------------------------------------
+
 # 比較演算子と比較関数の対応
 OPERATORS = {
     "gt": operator.gt,
@@ -56,6 +60,22 @@ OPERATORS = {
     "ne": operator.ne,
 }
 
+
+# --------------------------------------------------
+# コマンドライン引数パーサー
+# --------------------------------------------------
+
+class CustomArgumentParser(argparse.ArgumentParser):
+    """コマンドライン引数のエラー表示をカスタマイズする。"""
+
+    def error(self, message: str) -> None:
+        # エラーメッセージを標準エラー出力に表示する
+        self.exit(2, f"[ERROR] {message}\n")
+
+
+# --------------------------------------------------
+# CSV抽出処理
+# --------------------------------------------------
 
 def extract_csv(
         input_path: Path,
@@ -201,9 +221,19 @@ def extract_csv(
                     temp_path.unlink(missing_ok=True)
 
 
+# --------------------------------------------------
+# コマンドライン引数処理
+# --------------------------------------------------
+
 def parse_args() -> argparse.Namespace:
 
-    parser = argparse.ArgumentParser(
+    # エラーメッセージをカスタマイズするため、カスタムパーサーを使用する
+    # parser = argparse.ArgumentParser(  # 標準のArgumentParser
+    #
+    # 出力例：
+    # > python .\csv_extractor.py
+    # [ERROR] the following arguments are required: input_path, output_path, --operator, --value
+    parser = CustomArgumentParser(
         description=(
             "CSVファイルを読み込み、指定した条件に一致するレコードを抽出して、"
             "別のCSVファイルに保存します。"
@@ -239,6 +269,10 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+# --------------------------------------------------
+# メイン処理
+# --------------------------------------------------
+
 def main() -> int:
 
     args = parse_args()
@@ -263,5 +297,12 @@ def main() -> int:
     return 0
 
 
+# --------------------------------------------------
+# エントリーポイント
+# --------------------------------------------------
+
 if __name__ == "__main__":
+    # スクリプトとして直接実行された場合のみ main() を呼び、
+    # その戻り値を終了コードとしてOSに返す
     raise SystemExit(main())
+
