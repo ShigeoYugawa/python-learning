@@ -10,6 +10,30 @@
 - 出力途中のエラーから既存ファイルを保護する。
 """
 
+
+# --------------------------------------------------
+# コマンドラインからの実行例
+# --------------------------------------------------
+
+# 30歳以上（30歳を含む）のレコードを抽出
+# python csv_extractor.py input\users.csv output\filtered.csv --operator ge --value 30
+
+# 30歳より大きいレコードを抽出
+# python csv_extractor.py input\users.csv output\filtered.csv --operator gt --value 30
+
+# 30歳と一致するレコードを抽出
+# python csv_extractor.py input\users.csv output\filtered.csv --operator eq --value 30
+
+# 30歳以下のレコードを抽出
+# python csv_extractor.py input\users.csv output\filtered.csv --operator le --value 30
+
+# 30歳未満のレコードを抽出
+# python csv_extractor.py input\users.csv output\filtered.csv --operator lt --value 30
+
+# 30歳と一致しないレコードを抽出
+# python csv_extractor.py input\users.csv output\filtered.csv --operator ne --value 30
+
+
 import argparse
 import csv
 import operator
