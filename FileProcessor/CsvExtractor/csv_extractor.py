@@ -204,7 +204,10 @@ def extract_csv(
 def parse_args() -> argparse.Namespace:
 
     parser = argparse.ArgumentParser(
-        description="CSVファイルから30歳以上のレコードを抽出して保存します。"
+        description=(
+            "CSVファイルを読み込み、指定した条件に一致するレコードを抽出して、"
+            "別のCSVファイルに保存します。"
+        )
     )
 
     parser.add_argument(
