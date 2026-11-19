@@ -32,3 +32,9 @@ Thumbs.db
 
 # CsvExtractor generated files
 FileProcessor/CsvExtractor/output/
+
+# 各プロジェクトのレビュー用ファイルをGitの追跡対象外にする
+# 例:
+# FileProcessor/CsvExtractor/review/
+# FileProcessor/OtherProject/review/
+**/review/
