@@ -12,6 +12,7 @@
 
 import argparse
 import csv
+import operator
 import os
 import sys
 import tempfile
@@ -19,7 +20,23 @@ from contextlib import suppress
 from pathlib import Path
 
 
-def extract_csv(input_path: Path, output_path: Path) -> None:
+# 比較演算子と比較関数の対応
+OPERATORS = {
+    "gt": operator.gt,
+    "ge": operator.ge,
+    "eq": operator.eq,
+    "le": operator.le,
+    "lt": operator.lt,
+    "ne": operator.ne,
+}
+
+
+def extract_csv(
+        input_path: Path,
+        output_path: Path,
+        operator_type: str,
+        value: int
+) -> None:
 
     # 入力ファイルと出力ファイルが同一でないことを確認する（絶対パスで比較）
     if input_path.resolve() == output_path.resolve():
@@ -28,6 +45,10 @@ def extract_csv(input_path: Path, output_path: Path) -> None:
     # 入力パスがディレクトリでないことを確認する
     if input_path.is_dir():
         raise IsADirectoryError(f"入力パスがディレクトリです: {input_path}")
+
+    # 演算子のキー（gt / ge / eq など）から対応する比較関数を取得する
+    # 動作イメージ: operator_type が "ge" の場合、operator.ge を取得する
+    comparison = OPERATORS[operator_type]
 
     # CSVファイルを読み込む
     with input_path.open(
@@ -132,8 +153,10 @@ def extract_csv(input_path: Path, output_path: Path) -> None:
                         # 整数に変換できない値（文字列・空欄・Noneなど）は対象外とする
                         continue
 
-                    # 30歳未満のレコードはスキップ
-                    if age < 30:
+                    # 取得した比較関数に年齢と閾値を渡して比較する
+                    # 動作イメージ: comparison(35, 30) は operator.ge(35, 30) と同じ
+                    # 比較結果がFalseの場合、対象レコードをスキップする
+                    if not comparison(age, value):
                         continue
 
                     # 条件に一致するレコードを書き込む
@@ -170,6 +193,20 @@ def parse_args() -> argparse.Namespace:
         help="書き込むCSVファイルのパス"
     )
 
+    parser.add_argument(
+        "--operator",
+        choices=OPERATORS.keys(),
+        required=True,
+        help="比較演算子（gt: より大きい / ge: 以上 / eq: 一致 / le: 以下 / lt: 未満 / ne: 不一致）"
+    )
+
+    parser.add_argument(
+        "--value",
+        type=int,
+        required=True,
+        help="比較する整数値"
+    )
+
     return parser.parse_args()
 
 
@@ -178,7 +215,12 @@ def main() -> int:
     args = parse_args()
 
     try:
-        extract_csv(args.input_path, args.output_path)
+        extract_csv(
+            args.input_path,
+            args.output_path,
+            args.operator,
+            args.value
+        )
 
     except (OSError, csv.Error, ValueError) as error:
 
