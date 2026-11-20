@@ -103,7 +103,7 @@ def extract_csv(
         newline=""
     ) as input_file:
 
-        # 余分な列を検出するための専用キー
+        # CSVの各行に共通して使用する、余分な列の値を取り出すための専用キーを生成する
         extra_fields_key = object()
 
         # CSVファイルを読み込む
